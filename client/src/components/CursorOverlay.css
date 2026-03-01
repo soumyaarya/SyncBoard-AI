@@ -1,0 +1,108 @@
+.cursor-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 50;
+}
+
+.remote-cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    transition: transform 50ms linear;
+    will-change: transform;
+}
+
+.cursor-pointer {
+    width: 20px;
+    height: 20px;
+    color: var(--accent-primary);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.cursor-label {
+    margin-top: 16px;
+    padding: 2px 8px;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Different colors for different users */
+.remote-cursor:nth-child(2) .cursor-pointer {
+    color: #22c55e;
+}
+
+.remote-cursor:nth-child(2) .cursor-label {
+    background: #22c55e;
+}
+
+.remote-cursor:nth-child(3) .cursor-pointer {
+    color: #f59e0b;
+}
+
+.remote-cursor:nth-child(3) .cursor-label {
+    background: #f59e0b;
+}
+
+.remote-cursor:nth-child(4) .cursor-pointer {
+    color: #ef4444;
+}
+
+.remote-cursor:nth-child(4) .cursor-label {
+    background: #ef4444;
+}
+
+.remote-cursor:nth-child(5) .cursor-pointer {
+    color: #ec4899;
+}
+
+.remote-cursor:nth-child(5) .cursor-label {
+    background: #ec4899;
+}
+
+.remote-cursor:nth-child(6) .cursor-pointer {
+    color: #14b8a6;
+}
+
+.remote-cursor:nth-child(6) .cursor-label {
+    background: #14b8a6;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .cursor-pointer {
+        width: 16px;
+        height: 16px;
+    }
+
+    .cursor-label {
+        margin-top: 12px;
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cursor-pointer {
+        width: 14px;
+        height: 14px;
+    }
+
+    .cursor-label {
+        margin-top: 10px;
+        padding: 1px 4px;
+        font-size: 9px;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
