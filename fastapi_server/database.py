@@ -4,8 +4,10 @@ from config import get_settings
 settings = get_settings()
 
 client = AsyncIOMotorClient(settings.mongodb_uri)
-# Use the SyncBoard database
-db = client["SyncBoard"]
+
+# Mongoose defaults to 'test' when no DB name is specified in the Atlas URI.
+# Confirmed by inspecting mongoose.connection.db.databaseName at runtime.
+db = client["test"]
 
 # Collections (matching Mongoose model names)
 users_collection = db["users"]

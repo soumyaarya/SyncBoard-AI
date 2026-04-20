@@ -14,8 +14,9 @@ class RoomManager {
         const room = await Room.create({
             roomId,
             name: roomName,
-            owner: userId,
-            participants: [userId]
+            owner: userId || null,
+            // Only add user to participants if authenticated
+            participants: userId ? [userId] : []
         });
 
         // Create empty drawing document
@@ -42,9 +43,10 @@ class RoomManager {
             throw new Error('Room not found');
         }
 
-        // Add participant if not already added
-        if (user && !room.participants.includes(user._id)) {
+        // Add participant if authenticated and not already in the list
+        if (user && user._id && !room.participants.some(p => p && p.toString() === user._id.toString())) {
             room.participants.push(user._id);
+            room.lastActivity = new Date();
             await room.save();
         }
 

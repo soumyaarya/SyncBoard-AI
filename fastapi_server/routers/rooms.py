@@ -11,20 +11,46 @@ from models.schemas import RoomUpdateName
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
 
+@router.get("/debug")
+async def debug_rooms():
+    """DEBUG: Show raw room data to diagnose query issues. TEMPORARY - remove after debugging."""
+    # Show all rooms in the collection
+    all_rooms = []
+    async for room in rooms_collection.find().limit(10):
+        # Convert ObjectId fields to strings for JSON
+        raw = {}
+        for key, val in room.items():
+            if hasattr(val, '__str__') and key == '_id':
+                raw[key] = str(val)
+            elif key == 'owner':
+                raw[key] = f"{val} (type: {type(val).__name__})"
+            elif key == 'participants':
+                raw[key] = [f"{p} (type: {type(p).__name__})" for p in val]
+            else:
+                raw[key] = str(val)
+        all_rooms.append(raw)
+
+    return {
+        "total_rooms_in_db": await rooms_collection.count_documents({}),
+        "sample_rooms": all_rooms,
+    }
+
+
 def serialize_room(room: dict) -> dict:
     """Convert MongoDB room document to JSON-safe dict."""
-    #mongoose does this automatically in fastapi we have to do it manually  
     if room is None:
         return None
     room["_id"] = str(room["_id"])
     if room.get("owner"):
         room["owner"] = str(room["owner"])
-    if room.get("participants"):
-        room["participants"] = [str(p) for p in room["participants"]]
+    # Filter out null participants (e.g. guests who joined without an account)
+    if room.get("participants") is not None:
+        room["participants"] = [str(p) for p in room["participants"] if p is not None]
     if room.get("createdAt"):
         room["createdAt"] = room["createdAt"].isoformat()
-    if room.get("lastActivity"):
-        room["lastActivity"] = room["lastActivity"].isoformat()
+    # Always provide a lastActivity — fall back to createdAt so time is never 'Unknown'
+    last_activity = room.get("lastActivity") or room.get("createdAt")
+    room["lastActivity"] = last_activity.isoformat() if last_activity else None
     return room
 
 
@@ -33,17 +59,23 @@ async def get_rooms(user: dict = Depends(get_current_user)):
     """Get all rooms for authenticated user."""
     try:
         user_id = ObjectId(user["id"])
+        print(f"[DEBUG] Fetching rooms for user_id: {user_id} (raw: {user['id']})")
+
+        # Also try matching the raw string ID in case owner was stored as string
         cursor = rooms_collection.find({
             "$or": [
                 {"owner": user_id},
+                {"owner": user["id"]},
                 {"participants": user_id},
+                {"participants": user["id"]},
             ]
-        }).sort("updatedAt", -1)
+        }).sort("lastActivity", -1)
 
         rooms = []
         async for room in cursor:
             rooms.append(serialize_room(room))
 
+        print(f"[DEBUG] Found {len(rooms)} rooms for user {user['id']}")
         return {"success": True, "rooms": rooms}
     except Exception as e:
         print(f"Error fetching rooms: {e}")

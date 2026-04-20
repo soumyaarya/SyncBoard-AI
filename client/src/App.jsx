@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { useSocket } from './hooks/useSocket';
 import Login from './components/Login';
 import RoomPanel from './components/RoomPanel';
+import Dashboard from './components/Dashboard';
 import Whiteboard from './components/Whiteboard';
 import './App.css';
 
@@ -85,12 +86,12 @@ function App() {
         }
     };
 
-    // Handle leaving room — always go back to homepage
+    // Handle leaving room — authenticated users go to dashboard, guests to homepage
     const handleLeaveRoom = () => {
         leaveRoom();
         setCurrentRoom(null);
         setRoomName('');
-        setShowDashboard(false); // Go back to homepage, not room panel
+        setShowDashboard(isAuthenticated); // Dashboard for signed users, homepage for guests
     };
 
     // Handle save - requires auth
@@ -213,14 +214,24 @@ function App() {
                                 isAuthenticated={isAuthenticated}
                             />
                         ) : showRoomPanel ? (
-                            <RoomPanel
-                                user={user}
-                                onCreate={handleCreateRoom}
-                                onJoin={handleJoinRoom}
-                                onLogin={login}
-                                isConnected={isConnected}
-                                isAuthenticated={isAuthenticated}
-                            />
+                            isAuthenticated ? (
+                                <Dashboard
+                                    user={user}
+                                    onCreate={handleCreateRoom}
+                                    onJoin={handleJoinRoom}
+                                    onLogout={() => { logout(); setShowDashboard(false); }}
+                                    token={token}
+                                />
+                            ) : (
+                                <RoomPanel
+                                    user={user}
+                                    onCreate={handleCreateRoom}
+                                    onJoin={handleJoinRoom}
+                                    onLogin={login}
+                                    isConnected={isConnected}
+                                    isAuthenticated={isAuthenticated}
+                                />
+                            )
                         ) : (
                             <Login
                                 onLogin={handleGetStarted}
